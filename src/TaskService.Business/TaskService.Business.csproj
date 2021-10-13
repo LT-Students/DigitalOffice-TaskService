@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$(ProjectDir)..\..\Common.Configurations.targets" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\TaskService.Data\TaskService.Data.csproj" />
+    <ProjectReference Include="..\TaskService.Validation\TaskService.Validation.csproj" />
+    <ProjectReference Include="..\TaskService.Mappers\TaskService.Mappers.csproj" />
+    <ProjectReference Include="..\TaskService.Models.Dto\TaskService.Models.Dto.csproj" />
+    <ProjectReference Include="..\TaskService.Models.Db\TaskService.Models.Db.csproj" />
+  </ItemGroup>
+
+</Project>
