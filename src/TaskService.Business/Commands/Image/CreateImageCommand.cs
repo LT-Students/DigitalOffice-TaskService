@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using FluentValidation.Results;
 using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Kernel.Constants;
@@ -107,7 +108,11 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
         return _responseCreater.CreateFailureResponse<List<Guid>>(HttpStatusCode.Forbidden);
       }
 
-      if (!_validator.ValidateCustom(request, out var errors))
+      ValidationResult validationResult = await _validator.ValidateAsync(request);
+
+      List<string> errors = validationResult.Errors.Select(vf => vf.ErrorMessage).ToList();
+
+      if (!validationResult.IsValid)
       {
         return _responseCreater.CreateFailureResponse<List<Guid>>(HttpStatusCode.BadRequest, errors);
       }

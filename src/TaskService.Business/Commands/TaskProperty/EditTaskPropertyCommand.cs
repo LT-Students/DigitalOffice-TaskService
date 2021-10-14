@@ -5,22 +5,19 @@ using System.Net;
 using System.Threading.Tasks;
 using FluentValidation.Results;
 using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
-using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.TaskService.Business.Commands.TaskProperty.Interfaces;
 using LT.DigitalOffice.TaskService.Data.Interfaces;
 using LT.DigitalOffice.TaskService.Mappers.PatchDocument.Interfaces;
 using LT.DigitalOffice.TaskService.Models.Db;
 using LT.DigitalOffice.TaskService.Models.Dto.Requests;
 using LT.DigitalOffice.TaskService.Validation.TaskProperty.Interfaces;
-using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace LT.DigitalOffice.ProjectService.Business.Commands.Task
 {
@@ -32,32 +29,33 @@ namespace LT.DigitalOffice.ProjectService.Business.Commands.Task
     private readonly IPatchDbTaskPropertyMapper _mapper;
     private readonly IEditTaskPropertyRequestValidator _validator;
     private readonly IResponseCreater _responseCreater;
-    private readonly IRequestClient<ICheckProjectUsersExistenceRequest> _rcCheckProjectUsers;
-    private readonly ILogger<EditTaskPropertyCommand> _logger;
 
-    private async Task<bool> DoesProjectUserExist(Guid projectId, Guid userId)
+    private async Task<bool> ValidateAsync(Guid? projectId, JsonPatchDocument<EditTaskPropertyRequest> patch, List<string> errors)
     {
-      string logMessage = "Cannot check project users existence.";
-
-      try
+      if (!projectId.HasValue)
       {
-        Response<IOperationResult<List<Guid>>> response =
-          await _rcCheckProjectUsers.GetResponse<IOperationResult<List<Guid>>>(
-            ICheckProjectUsersExistenceRequest.CreateObj(projectId, new() { userId }));
+        errors.Add("Cannot edit default properties.");
 
-        if (response.Message.IsSuccess)
-        {
-          return response.Message.Body?.Any() ?? false;
-        }
-
-        _logger.LogWarning(logMessage);
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, logMessage);
+        return false;
       }
 
-      return false;
+      Operation<EditTaskPropertyRequest> newName = patch.Operations.FirstOrDefault(o =>
+        o.path[1..].Equals(nameof(EditTaskPropertyRequest.Name), StringComparison.OrdinalIgnoreCase));
+
+      if (newName == null)
+      {
+        return true;
+      }
+
+      Operation<EditTaskPropertyRequest> newProjectId = patch.Operations.FirstOrDefault(o =>
+        o.path[1..].Equals(nameof(EditTaskPropertyRequest.ProjectId), StringComparison.OrdinalIgnoreCase));
+
+      if (newProjectId == null)
+      {
+        return !await _taskPropertyRepository.DoesExistNameAsync(projectId.Value, newName.value.ToString());
+      }
+
+      return !await _taskPropertyRepository.DoesExistNameAsync(Guid.Parse(newProjectId.value.ToString()), newName.value.ToString());
     }
 
     public EditTaskPropertyCommand(
@@ -78,19 +76,20 @@ namespace LT.DigitalOffice.ProjectService.Business.Commands.Task
 
     public async Task<OperationResultResponse<bool>> ExecuteAsync(Guid taskPropertyId, JsonPatchDocument<EditTaskPropertyRequest> patch)
     {
-      DbTaskProperty taskProperty = _taskPropertyRepository.Get(taskPropertyId);
+      DbTaskProperty taskProperty = await _taskPropertyRepository.GetAsync(taskPropertyId);
 
-      if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveProjects)) // TODO rights
+      if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveProjects))
       {
         return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
       }
 
       ValidationResult validationResult = await _validator.ValidateAsync(patch);
 
-      if (!validationResult.IsValid)
+      List<string> errors = validationResult.Errors.Select(vf => vf.ErrorMessage).ToList();
+
+      if (!validationResult.IsValid || !await ValidateAsync(taskProperty.ProjectId, patch, errors))
       {
-        return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.BadRequest,
-          validationResult.Errors.Select(vf => vf.ErrorMessage).ToList());
+        return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
       }
 
       OperationResultResponse<bool> response = new();

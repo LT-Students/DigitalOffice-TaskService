@@ -104,9 +104,9 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
         DbTask parentTask = null;
 
         RuleFor(task => task.ParentId)
-          .Must(x =>
+          .MustAsync(async (x, _) =>
           {
-            parentTask = tasksRepository.Get(x.Value, false);
+            parentTask = await tasksRepository.GetAsync(x.Value, false);
             return parentTask != null;
           })
           .WithMessage("Task does not exist.")
@@ -137,17 +137,17 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
 
       RuleFor(task => task)
         .NotEmpty()
-        .Must(x => taskPropertyRepository.DoesExist(x.PriorityId, TaskPropertyType.Priority))
+        .MustAsync(async (x, _) => await taskPropertyRepository.DoesExistAsync(x.PriorityId, TaskPropertyType.Priority))
         .WithMessage("Priority id does not exist.");
 
       RuleFor(task => task)
         .NotEmpty()
-        .Must(x => taskPropertyRepository.DoesExist(x.StatusId, TaskPropertyType.Status))
+        .MustAsync(async (x, _) => await taskPropertyRepository.DoesExistAsync(x.StatusId, TaskPropertyType.Status))
         .WithMessage("Status id does not exist.");
 
       RuleFor(task => task)
         .NotEmpty()
-        .Must(x => taskPropertyRepository.DoesExist(x.TypeId, TaskPropertyType.Type))
+        .MustAsync(async (x, _) => await taskPropertyRepository.DoesExistAsync(x.TypeId, TaskPropertyType.Type))
         .WithMessage("Type id does not exist.");
     }
   }

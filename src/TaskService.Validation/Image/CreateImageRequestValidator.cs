@@ -15,7 +15,7 @@ namespace LT.DigitalOffice.TaskService.Validation.Image
       List<string> errors = new();
 
       RuleFor(request => request.TaskId)
-        .Must(id => taskRepository.DoesExist(id))
+        .MustAsync(async (id, _) => await taskRepository.DoesExistAsync(id))
         .WithMessage("Task must exist.");
 
       RuleFor(images => images)

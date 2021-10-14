@@ -10,6 +10,7 @@ using LT.DigitalOffice.TaskService.Models.Dto.Enums;
 using LT.DigitalOffice.TaskService.Models.Dto.Requests.Filters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.EntityFrameworkCore;
 
 namespace LT.DigitalOffice.TaskService.Data
 {
@@ -32,20 +33,9 @@ namespace LT.DigitalOffice.TaskService.Data
       await _provider.SaveAsync();
     }
 
-    public bool DoExists(params Guid[] ids)
+    public async Task<bool> DoesExistNameAsync(Guid projectId, string propertyName)
     {
-      var dbIds = _provider.TaskProperties.Select(x => x.Id);
-
-      return ids.All(x => dbIds.Contains(x));
-    }
-
-    public bool DoesExistForProject(Guid projectId, params string[] propertyNames)
-    {
-      var dbPropertyNames = _provider.TaskProperties
-        .Where(tp => tp.ProjectId == projectId || tp.ProjectId == null)
-        .Select(x => x.Name);
-
-      return propertyNames.Any(x => dbPropertyNames.Contains(x));
+      return await _provider.TaskProperties.AnyAsync(tp => tp.IsActive && tp.Name == propertyName && tp.ProjectId == projectId);
     }
 
     public async Task<bool> EditAsync(DbTaskProperty taskProperty, JsonPatchDocument<DbTaskProperty> taskPatch)
@@ -58,12 +48,12 @@ namespace LT.DigitalOffice.TaskService.Data
       return true;
     }
 
-    public DbTaskProperty Get(Guid propertyId)
+    public async Task<DbTaskProperty> GetAsync(Guid propertyId)
     {
-      return _provider.TaskProperties.FirstOrDefault(x => x.Id == propertyId);
+      return await _provider.TaskProperties.FirstOrDefaultAsync(x => x.Id == propertyId);
     }
 
-    public List<DbTaskProperty> Find(FindTaskPropertiesFilter filter, out int totalCount)
+    public async Task<(List<DbTaskProperty>, int totalCount)> FindAsync(FindTaskPropertiesFilter filter)
     {
       var dbTaskProperties = _provider.TaskProperties.AsQueryable();
 
@@ -87,14 +77,14 @@ namespace LT.DigitalOffice.TaskService.Data
         dbTaskProperties = dbTaskProperties.Where(tp => tp.PropertyType == (int)filter.Type.Value);
       }
 
-      totalCount = dbTaskProperties.Count();
+      int totalCount = await dbTaskProperties.CountAsync();
 
-      return dbTaskProperties.Skip(filter.SkipCount).Take(filter.TakeCount).ToList();
+      return (await dbTaskProperties.Skip(filter.SkipCount).Take(filter.TakeCount).ToListAsync(), totalCount);
     }
 
-    public bool DoesExist(Guid id, TaskPropertyType type)
+    public async Task<bool> DoesExistAsync(Guid id, TaskPropertyType type)
     {
-      return _provider.TaskProperties.Any(tp => tp.Id == id && tp.IsActive && tp.PropertyType == (int)type);
+      return await _provider.TaskProperties.AnyAsync(tp => tp.Id == id && tp.IsActive && tp.PropertyType == (int)type);
     }
   }
 }

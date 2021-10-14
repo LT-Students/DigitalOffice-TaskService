@@ -154,9 +154,9 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
     {
       var errors = new List<string>();
 
-      var task = _taskRepository.Get(taskId, false);
+      DbTask task = await _taskRepository.GetAsync(taskId, false);
 
-      var requestUserId = _httpContextAccessor.HttpContext.GetUserId();
+      Guid requestUserId = _httpContextAccessor.HttpContext.GetUserId();
 
       if (!await _accessValidator.IsAdminAsync()
           && (await GetDepartmentAsync(requestUserId, errors))?.DirectorUserId != requestUserId)

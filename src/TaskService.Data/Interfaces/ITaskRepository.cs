@@ -15,14 +15,14 @@ namespace LT.DigitalOffice.ProjectService.Data.Interfaces
   [AutoInject]
   public interface ITaskRepository
   {
-    DbTask Get(Guid taskId, bool isFullModel);
+    Task<DbTask> GetAsync(Guid taskId, bool isFullModel);
 
     Task<bool> EditAsync(DbTask task, JsonPatchDocument<DbTask> taskPatch);
 
-    List<DbTask> Find(FindTasksFilter filter, List<Guid> projectsIds, out int totalCount);
+    Task<(List<DbTask>, int totalCount)> FindAsync(FindTasksFilter filter, List<Guid> projectsIds);
 
     Task<Guid> CreateAsync(DbTask dbTask);
 
-    bool DoesExist(Guid id);
+    Task<bool> DoesExistAsync(Guid id);
   }
 }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FluentValidation;
 using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Models.Broker.Common;
+using LT.DigitalOffice.TaskService.Data.Interfaces;
 using LT.DigitalOffice.TaskService.Models.Dto.Requests;
 using LT.DigitalOffice.TaskService.Validation.TaskProperty.Interfaces;
 using MassTransit;
@@ -43,7 +44,8 @@ namespace LT.DigitalOffice.TaskService.Validation.TaskProperty
 
     public CreateTaskPropertyRequestValidator(
       IRequestClient<ICheckProjectsExistence> rcCheckProjects,
-      ILogger<CreateTaskPropertyRequestValidator> logger)
+      ILogger<CreateTaskPropertyRequestValidator> logger,
+      ITaskPropertyRepository taskPropertyRepository)
     {
       _rcCheckProjects = rcCheckProjects;
       _logger = logger;
@@ -51,6 +53,10 @@ namespace LT.DigitalOffice.TaskService.Validation.TaskProperty
       RuleFor(tp => tp.Name)
         .NotEmpty()
         .MaximumLength(32);
+
+      RuleFor(tp => tp)
+        .MustAsync(async (tp, _) => !await taskPropertyRepository.DoesExistNameAsync(tp.ProjectId, tp.Name))
+        .WithMessage("Property name must be unique.");
 
       RuleFor(tp => tp.PropertyType)
         .IsInEnum();

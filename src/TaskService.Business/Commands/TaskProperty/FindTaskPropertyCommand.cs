@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
@@ -9,6 +10,7 @@ using LT.DigitalOffice.Kernel.Validators.Interfaces;
 using LT.DigitalOffice.TaskService.Business.Commands.TaskProperty.Interfaces;
 using LT.DigitalOffice.TaskService.Data.Interfaces;
 using LT.DigitalOffice.TaskService.Mappers.Models.Interfaces;
+using LT.DigitalOffice.TaskService.Models.Db;
 using LT.DigitalOffice.TaskService.Models.Dto.Models;
 using LT.DigitalOffice.TaskService.Models.Dto.Requests.Filters;
 
@@ -33,19 +35,18 @@ namespace LT.DigitalOffice.ProjectService.Business.Commands
       _responseCreater = responseCreater;
     }
 
-    public FindResultResponse<TaskPropertyInfo> Execute(FindTaskPropertiesFilter filter)
+    public async Task<FindResultResponse<TaskPropertyInfo>> ExecuteAsync(FindTaskPropertiesFilter filter)
     {
       if (!_findRequestValidator.ValidateCustom(filter, out List<string> errors))
       {
         return _responseCreater.CreateFailureFindResponse<TaskPropertyInfo>(HttpStatusCode.BadRequest, errors);
       }
 
+      (List<DbTaskProperty> properties, int totalCount) = await _repository.FindAsync(filter);
+
       return new FindResultResponse<TaskPropertyInfo>
       {
-        Body = _repository
-          .Find(filter, out int totalCount)
-          .Select(tp => _mapper.Map(tp))
-          .ToList(),
+        Body = properties.Select(_mapper.Map).ToList(),
         Status = OperationResultStatusType.FullSuccess,
         TotalCount = totalCount
       };

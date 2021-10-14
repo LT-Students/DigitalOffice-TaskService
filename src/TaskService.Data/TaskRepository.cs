@@ -67,9 +67,9 @@ namespace LT.DigitalOffice.ProjectService.Data
       return newTask.Id;
     }
 
-    public bool DoesExist(Guid id)
+    public async Task<bool> DoesExistAsync(Guid id)
     {
-      return _provider.Tasks.FirstOrDefault(x => x.Id == id) != null;
+      return await _provider.Tasks.FirstOrDefaultAsync(x => x.Id == id) != null;
     }
 
     public async Task<bool> EditAsync(DbTask task, JsonPatchDocument<DbTask> taskPatch)
@@ -82,32 +82,30 @@ namespace LT.DigitalOffice.ProjectService.Data
       return true;
     }
 
-    public DbTask Get(Guid taskId, bool isFullModel)
+    public async Task<DbTask> GetAsync(Guid taskId, bool isFullModel)
     {
       if (isFullModel)
       {
-        return _provider.Tasks
+        return await _provider.Tasks
           .Include(t => t.Status)
           .Include(t => t.Priority)
           .Include(t => t.Type)
           .Include(t => t.Subtasks)
           .Include(t => t.Images)
           .Include(t => t.Parent)
-          .FirstOrDefault(x => x.Id == taskId);
+          .FirstOrDefaultAsync(x => x.Id == taskId);
       }
 
-      return _provider.Tasks.FirstOrDefault(x => x.Id == taskId);
+      return await _provider.Tasks.FirstOrDefaultAsync(x => x.Id == taskId);
     }
 
-    public List<DbTask> Find(
+    public async Task<(List<DbTask>, int totalCount)> FindAsync(
       FindTasksFilter filter,
-      List<Guid> projectsIds,
-      out int totalCount)
+      List<Guid> projectsIds)
     {
       if (filter == null)
       {
-        totalCount = 0;
-        return null;
+        return (null, 0);
       }
 
       IQueryable<DbTask> dbTasks = _provider.Tasks
@@ -118,9 +116,9 @@ namespace LT.DigitalOffice.ProjectService.Data
         .AsQueryable();
 
       IQueryable<DbTask> tasks = CreateFindPredicates(filter, projectsIds, dbTasks);
-      totalCount = tasks.Count();
+      int totalCount = await tasks.CountAsync();
 
-      return tasks.Skip(filter.SkipCount).Take(filter.TakeCount).ToList();
+      return (await tasks.Skip(filter.SkipCount).Take(filter.TakeCount).ToListAsync(), totalCount);
     }
   }
 }

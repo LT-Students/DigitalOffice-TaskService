@@ -23,11 +23,11 @@ namespace LT.DigitalOffice.TaskService.Controllers
     }
 
     [HttpGet("find")]
-    public FindResultResponse<TaskPropertyInfo> Find(
+    public async Task<FindResultResponse<TaskPropertyInfo>> Find(
       [FromServices] IFindTaskPropertyCommand command,
       [FromQuery] FindTaskPropertiesFilter filter)
     {
-      return command.Execute(filter);
+      return await command.ExecuteAsync(filter);
     }
 
     [HttpPatch("edit")]

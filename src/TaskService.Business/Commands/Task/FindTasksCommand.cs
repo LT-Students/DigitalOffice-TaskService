@@ -16,6 +16,7 @@ using LT.DigitalOffice.Models.Broker.Responses.Project;
 using LT.DigitalOffice.ProjectService.Data.Interfaces;
 using LT.DigitalOffice.TaskService.Business.Commands.Task.Interfaces;
 using LT.DigitalOffice.TaskService.Mappers.Models.Interfaces;
+using LT.DigitalOffice.TaskService.Models.Db;
 using LT.DigitalOffice.TaskService.Models.Dto.Models;
 using LT.DigitalOffice.TaskService.Models.Dto.Requests.Filters;
 using MassTransit;
@@ -182,7 +183,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
 
       FindResultResponse<TaskInfo> response = new();
 
-      var dbTasks = _taskRepository.Find(filter, projectDatas.Select(p => p.Id).ToList(), out var totalCount).ToList();
+      (List<DbTask> dbTasks, int totalCount) = await _taskRepository.FindAsync(filter, projectDatas.Select(p => p.Id).ToList());
 
       response.TotalCount = totalCount;
       response.Body = dbTasks.Select(t => _mapper.Map(t, projectDatas?.FirstOrDefault(p => p.Id == t.ProjectId))).ToList();

@@ -322,7 +322,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
     {
       List<string> errors = new();
 
-      DbTask dbTask = _taskRepository.Get(taskId, isFullModel: true);
+      DbTask dbTask = await _taskRepository.GetAsync(taskId, isFullModel: true);
 
       if (dbTask == null)
       {

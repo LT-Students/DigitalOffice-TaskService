@@ -14,13 +14,13 @@ namespace LT.DigitalOffice.TaskService.Data.Interfaces
   {
     Task CreateAsync(DbTaskProperty dbTaskProperty);
 
-    bool DoesExist(Guid id, TaskPropertyType type);
+    Task<bool> DoesExistAsync(Guid id, TaskPropertyType type);
 
-    bool DoesExistForProject(Guid projectId, params string[] propertyNames);
+    Task<bool> DoesExistNameAsync(Guid projectId, string propertyName);
 
-    DbTaskProperty Get(Guid propertyId);
+    Task<DbTaskProperty> GetAsync(Guid propertyId);
 
-    List<DbTaskProperty> Find(FindTaskPropertiesFilter filter, out int totalCount);
+    Task<(List<DbTaskProperty>, int totalCount)> FindAsync(FindTaskPropertiesFilter filter);
 
     Task<bool> EditAsync(DbTaskProperty taskProperty, JsonPatchDocument<DbTaskProperty> taskPatch);
   }
