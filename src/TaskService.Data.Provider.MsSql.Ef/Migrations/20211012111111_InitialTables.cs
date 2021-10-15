@@ -28,7 +28,7 @@ namespace LT.DigitalOffice.TaskService.Data.Provider.MsSql.Ef.Migrations
           ParentId = table.Column<Guid>(nullable: true),
           CreatedBy = table.Column<Guid>(nullable: false),
           CreatedAtUtc = table.Column<DateTime>(nullable: false),
-          ModifiedBy = table.Column<Guid?>(nullable: true),
+          ModifiedBy = table.Column<Guid>(nullable: true),
           ModifiedAtUtc = table.Column<DateTime>(nullable: true),
           Number = table.Column<int>(nullable: false)
         },
