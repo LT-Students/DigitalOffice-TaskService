@@ -59,7 +59,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       return false;
     }
 
-    private async Task<bool> Validate(DbTask task, JsonPatchDocument<EditTaskRequest> patch, List<string> errors)
+    private async Task<bool> ValidateAsync(DbTask task, JsonPatchDocument<EditTaskRequest> patch, List<string> errors)
     {
       var newAssignedTo = patch.Operations.FirstOrDefault(
         o => o.path[1..].Equals(nameof(EditTaskRequest.AssignedTo), StringComparison.OrdinalIgnoreCase));
@@ -97,7 +97,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
 
     public async Task<OperationResultResponse<bool>> ExecuteAsync(Guid taskId, JsonPatchDocument<EditTaskRequest> patch)
     {
-      var errors = new List<string>();
+      List<string> errors = new();
 
       DbTask task = await _taskRepository.GetAsync(taskId, false);
 
@@ -113,7 +113,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
 
       errors.AddRange(validationResult.Errors.Select(vf => vf.ErrorMessage).ToList());
 
-      if (!validationResult.IsValid || !await Validate(task, patch, errors))
+      if (!validationResult.IsValid || !await ValidateAsync(task, patch, errors))
       {
         return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
       }
