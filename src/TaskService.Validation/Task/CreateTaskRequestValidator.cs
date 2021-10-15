@@ -49,14 +49,15 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
       return false;
     }
 
-    private async Task<bool> DoesProjectUserExist(Guid projectId, Guid userId)
+    private async Task<bool> DoesProjectUserExistAsync(Guid projectId, Guid userId)
     {
       var logMessage = "Cannot check project users existence.";
 
       try
       {
-        var response = await _rcCheckProjectUsers.GetResponse<IOperationResult<List<Guid>>>(
-          ICheckProjectUsersExistenceRequest.CreateObj(projectId, new() { userId }));
+        Response<IOperationResult<List<Guid>>> response =
+          await _rcCheckProjectUsers.GetResponse<IOperationResult<List<Guid>>>(
+            ICheckProjectUsersExistenceRequest.CreateObj(projectId, new() { userId }));
 
         if (response.Message.IsSuccess)
         {
@@ -126,7 +127,7 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
       When(task => task.AssignedTo.HasValue, () =>
       {
         RuleFor(task => task)
-          .MustAsync(async (task, _) => await DoesProjectUserExist(task.ProjectId, task.AssignedTo.Value))
+          .MustAsync(async (task, _) => await DoesProjectUserExistAsync(task.ProjectId, task.AssignedTo.Value))
           .WithMessage("User does not exist.");
       });
 
@@ -138,15 +139,9 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
       RuleFor(task => task)
         .NotEmpty()
         .MustAsync(async (x, _) => await taskPropertyRepository.DoesExistAsync(x.PriorityId, TaskPropertyType.Priority))
-        .WithMessage("Priority id does not exist.");
-
-      RuleFor(task => task)
-        .NotEmpty()
+        .WithMessage("Priority id does not exist.")
         .MustAsync(async (x, _) => await taskPropertyRepository.DoesExistAsync(x.StatusId, TaskPropertyType.Status))
-        .WithMessage("Status id does not exist.");
-
-      RuleFor(task => task)
-        .NotEmpty()
+        .WithMessage("Status id does not exist.")
         .MustAsync(async (x, _) => await taskPropertyRepository.DoesExistAsync(x.TypeId, TaskPropertyType.Type))
         .WithMessage("Type id does not exist.");
     }

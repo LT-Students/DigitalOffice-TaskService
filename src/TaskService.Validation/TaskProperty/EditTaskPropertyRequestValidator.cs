@@ -27,7 +27,7 @@ namespace LT.DigitalOffice.TaskService.Validation.TaskProperty
 
       try
       {
-        var response =
+        Response<IOperationResult<ICheckProjectsExistence>> response =
           await _rcCheckProjects.GetResponse<IOperationResult<ICheckProjectsExistence>>(
             ICheckProjectsExistence.CreateObj(new() { projectId }));
 
@@ -74,72 +74,64 @@ namespace LT.DigitalOffice.TaskService.Validation.TaskProperty
       #region name
 
       AddFailureForPropertyIf(
-          nameof(EditTaskPropertyRequest.Name),
-          x => x == OperationType.Replace,
-          new()
-          {
-            { x => !string.IsNullOrEmpty(x.value?.ToString()), "Name must not be empty." },
-            { x => x.value?.ToString().Trim().Length < 150, "Name is too long." }
-          });
+        nameof(EditTaskPropertyRequest.Name),
+        x => x == OperationType.Replace,
+        new()
+        {
+          { x => !string.IsNullOrEmpty(x.value?.ToString().Trim()), "Name must not be empty." },
+          { x => x.value?.ToString().Trim().Length < 150, "Name is too long." }
+        });
 
       #endregion
 
       #region description
 
       AddFailureForPropertyIf(
-          nameof(EditTaskPropertyRequest.Description),
-          x => x == OperationType.Replace,
-          new()
+        nameof(EditTaskPropertyRequest.Description),
+        x => x == OperationType.Replace,
+        new()
+        {
           {
-            {
-              x =>
-              {
-                if (string.IsNullOrEmpty(x.value?.ToString()))
-                {
-                  return true;
-                }
-
-                return x.value.ToString().Trim().Length < 150;
-              },
-              "Description is too long."
-            }
-          });
+            x => x.value?.ToString().Trim().Length < 150,
+            "Description is too long"
+          }
+        });
 
       #endregion
 
       #region PropertyType
 
       AddFailureForPropertyIf(
-          nameof(EditTaskPropertyRequest.PropertyType),
-          x => x == OperationType.Replace,
-          new()
-          {
-            { x => Enum.IsDefined(typeof(TaskPropertyType), x.value?.ToString()), "This PropertyType does not exist." }
-          });
+        nameof(EditTaskPropertyRequest.PropertyType),
+        x => x == OperationType.Replace,
+        new()
+        {
+          { x => Enum.IsDefined(typeof(TaskPropertyType), x.value?.ToString()), "This PropertyType does not exist." }
+        });
 
       #endregion
 
       #region ProjectId
 
       AddFailureForPropertyIfAsync(
-          nameof(EditTaskPropertyRequest.ProjectId),
-          x => x == OperationType.Replace,
-          new()
-          {
-            { async (x) => Guid.TryParse(x.value.ToString(), out var result) && await DoesProjectExistAsync(result), "Incorrect project id." }
-          });
+        nameof(EditTaskPropertyRequest.ProjectId),
+        x => x == OperationType.Replace,
+        new()
+        {
+          { async (x) => Guid.TryParse(x.value.ToString(), out var result) && await DoesProjectExistAsync(result), "Incorrect project id." }
+        });
 
       #endregion
 
       #region IsActive
 
       AddFailureForPropertyIf(
-          nameof(EditTaskPropertyRequest.IsActive),
-          x => x == OperationType.Replace,
-          new()
-          {
-            { x => bool.TryParse(x.value?.ToString(), out var result), "Incorrect taskProperty is active format." }
-          });
+        nameof(EditTaskPropertyRequest.IsActive),
+        x => x == OperationType.Replace,
+        new()
+        {
+          { x => bool.TryParse(x.value?.ToString(), out var result), "Incorrect taskProperty is active format." }
+        });
 
       #endregion
     }

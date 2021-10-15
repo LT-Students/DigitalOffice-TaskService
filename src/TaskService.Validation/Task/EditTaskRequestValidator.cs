@@ -46,11 +46,11 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
 
       AddFailureForPropertyIf(
         nameof(EditTaskRequest.Name),
-        x => x == OperationType.Replace || x == OperationType.Add,
+        x => x == OperationType.Replace,
         new()
         {
-          { x => !string.IsNullOrEmpty(x.value.ToString()), "Name is empty." },
-          { x => x.value.ToString().Length < 150, "Name is too long" }
+          { x => !string.IsNullOrEmpty(x.value?.ToString().Trim()), "Name not must be null or empty." },
+          { x => x.value.ToString()?.Trim()?.Length < 150, "Name is too long" }
         });
 
       #endregion
@@ -59,20 +59,12 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
 
       AddFailureForPropertyIf(
         nameof(EditTaskRequest.Description),
-        x => x == OperationType.Replace || x == OperationType.Add,
+        x => x == OperationType.Replace,
         new()
         {
           {
-            x =>
-                    {
-                      if (string.IsNullOrEmpty(x.ToString()))
-                      {
-                        return true;
-                      }
-
-                      return x.value.ToString().Length < 150;
-                    },
-            "Name is too long"
+            x => x.value?.ToString().Trim().Length < 150,
+            "Description is too long"
           }
         });
 
@@ -82,7 +74,7 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
 
       AddFailureForPropertyIf(
         nameof(EditTaskRequest.AssignedTo),
-        x => x == OperationType.Replace || x == OperationType.Add,
+        x => x == OperationType.Replace,
         new()
         {
           { x => Guid.TryParse(x.value.ToString(), out var _), "Incorrect format of AssignedTo." }
@@ -94,7 +86,7 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
 
       AddFailureForPropertyIf(
         nameof(EditTaskRequest.PriorityId),
-        x => x == OperationType.Replace || x == OperationType.Add,
+        x => x == OperationType.Replace,
         new()
         {
           { x => Guid.TryParse(x.value.ToString(), out var _), "Incorrect format of PriorityId." }
@@ -102,7 +94,7 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
 
       AddFailureForPropertyIfAsync(
         nameof(EditTaskRequest.PriorityId),
-        x => x == OperationType.Replace || x == OperationType.Add,
+        x => x == OperationType.Replace,
         new()
         {
           { async x => await _taskPropertyRepository.DoesExistAsync(Guid.Parse(x.value.ToString()), TaskPropertyType.Priority), "The priority must exist." }
@@ -114,7 +106,7 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
 
       AddFailureForPropertyIf(
         nameof(EditTaskRequest.StatusId),
-        x => x == OperationType.Replace || x == OperationType.Add,
+        x => x == OperationType.Replace,
         new()
         {
           { x => Guid.TryParse(x.value.ToString(), out var _), "Incorrect format of StatusId." }
@@ -122,7 +114,7 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
 
       AddFailureForPropertyIfAsync(
         nameof(EditTaskRequest.StatusId),
-        x => x == OperationType.Replace || x == OperationType.Add,
+        x => x == OperationType.Replace,
         new()
         {
           { async x => await _taskPropertyRepository.DoesExistAsync(Guid.Parse(x.value.ToString()), TaskPropertyType.Status), "The status must exist." }
@@ -134,7 +126,7 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
 
       AddFailureForPropertyIf(
         nameof(EditTaskRequest.TypeId),
-        x => x == OperationType.Replace || x == OperationType.Add,
+        x => x == OperationType.Replace,
         new()
         {
           { x => Guid.TryParse(x.value.ToString(), out var _), "Incorrect format of TypeId." }
@@ -142,7 +134,7 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
 
       AddFailureForPropertyIfAsync(
         nameof(EditTaskRequest.TypeId),
-        x => x == OperationType.Replace || x == OperationType.Add,
+        x => x == OperationType.Replace,
         new()
         {
           { async x => await _taskPropertyRepository.DoesExistAsync(Guid.Parse(x.value.ToString()), TaskPropertyType.Type), "The type must exist." }
@@ -154,7 +146,7 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
 
       AddFailureForPropertyIf(
         nameof(EditTaskRequest.PlannedMinutes),
-        x => x == OperationType.Replace || x == OperationType.Add,
+        x => x == OperationType.Replace,
         new()
         {
           { x => int.TryParse(x.value.ToString(), out var minutes) && minutes > 0, "Incorrect format of PlannedMinutes." }

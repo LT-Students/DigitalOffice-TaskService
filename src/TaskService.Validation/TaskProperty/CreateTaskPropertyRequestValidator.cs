@@ -23,7 +23,7 @@ namespace LT.DigitalOffice.TaskService.Validation.TaskProperty
 
       try
       {
-        var response =
+        Response<IOperationResult<ICheckProjectsExistence>> response =
           await _rcCheckProjects.GetResponse<IOperationResult<ICheckProjectsExistence>>(
             ICheckProjectsExistence.CreateObj(new() { projectId }));
 
@@ -59,7 +59,8 @@ namespace LT.DigitalOffice.TaskService.Validation.TaskProperty
         .WithMessage("Property name must be unique.");
 
       RuleFor(tp => tp.PropertyType)
-        .IsInEnum();
+        .IsInEnum()
+        .WithMessage("Incorrect property type.");
 
       When(tp => !string.IsNullOrEmpty(tp.Description?.Trim()), () =>
       {

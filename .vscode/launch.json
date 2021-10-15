@@ -9,7 +9,7 @@
         "type": "coreclr",
         "request": "launch",
         "preLaunchTask": "build",
-        "program": "${workspaceFolder}/src/ProjectService/bin/Debug/netcoreapp3.1/LT.DigitalOffice.ProjectService.dll",
+        "program": "${workspaceFolder}/src/TaskService/bin/Debug/netcoreapp3.1/LT.DigitalOffice.TaskService.dll",
         "args": [],
         "cwd": "${workspaceFolder}",
         "stopAtEntry": false,

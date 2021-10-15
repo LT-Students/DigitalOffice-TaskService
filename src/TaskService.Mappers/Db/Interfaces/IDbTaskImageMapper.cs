@@ -9,7 +9,7 @@ namespace LT.DigitalOffice.TaskService.Mappers.Db.Interfaces
   public interface IDbTaskImageMapper
   {
     DbTaskImage Map(CreateImageRequest request, Guid imageId);
-    DbTaskImage Map(Guid taskId, Guid imageId);
 
+    DbTaskImage Map(Guid taskId, Guid imageId);
   }
 }
