@@ -9,14 +9,12 @@ using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
-using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Requests.Image;
 using LT.DigitalOffice.Models.Broker.Responses.Image;
-using LT.DigitalOffice.ProjectService.Data.Interfaces;
 using LT.DigitalOffice.ProjectService.Models.Dto.Requests;
 using LT.DigitalOffice.TaskService.Business.Commands.Image.Interfaces;
 using LT.DigitalOffice.TaskService.Data.Interfaces;
@@ -38,7 +36,6 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IDbTaskImageMapper _dbProjectImageMapper;
     private readonly ICreateImageRequestValidator _validator;
-    private readonly ITaskRepository _taskRepository;
     private readonly IResponseCreater _responseCreater;
 
     private async Task<List<Guid>> CreateImagesAsync(List<ImageContent> images, Guid userId, List<string> errors)
@@ -87,7 +84,6 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
       IHttpContextAccessor httpContextAccessor,
       IDbTaskImageMapper dbProjectImageMapper,
       ICreateImageRequestValidator validator,
-      ITaskRepository taskRepository,
       IResponseCreater responseCreater)
     {
       _repository = repository;
@@ -97,7 +93,6 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
       _httpContextAccessor = httpContextAccessor;
       _dbProjectImageMapper = dbProjectImageMapper;
       _validator = validator;
-      _taskRepository = taskRepository;
       _responseCreater = responseCreater;
     }
 

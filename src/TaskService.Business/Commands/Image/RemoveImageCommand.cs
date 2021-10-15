@@ -30,7 +30,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
     private readonly IRemoveImageRequestValidator _validator;
     private readonly IResponseCreater _responseCreater;
 
-    private async Task<bool> RemoveImage(List<Guid> ids, List<string> errors)
+    private async Task<bool> RemoveImageAsync(List<Guid> ids, List<string> errors)
     {
       if (ids == null || !ids.Any())
       {
@@ -93,7 +93,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
         return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
       }
 
-      if (!await RemoveImage(request.ImagesIds, errors))
+      if (!await RemoveImageAsync(request.ImagesIds, errors))
       {
         return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
       }
