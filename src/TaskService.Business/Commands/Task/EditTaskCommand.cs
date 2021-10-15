@@ -34,9 +34,8 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
     private readonly ILogger<EditTaskCommand> _logger;
     private readonly IRequestClient<ICheckProjectUsersExistenceRequest> _rcCheckProjectUsers;
     private readonly IResponseCreater _responseCreater;
-    private readonly IRedisHelper _redisHelper;
 
-    private async Task<bool> DoesProjectUserExist(Guid projectId, Guid userId)
+    private async Task<bool> DoesProjectUserExistAsync(Guid projectId, Guid userId)
     {
       var logMessage = "Cannot check project users existence.";
 
@@ -66,7 +65,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
         o => o.path[1..].Equals(nameof(EditTaskRequest.AssignedTo), StringComparison.OrdinalIgnoreCase));
 
       if (newAssignedTo == null
-        || await DoesProjectUserExist(task.ProjectId, Guid.Parse(newAssignedTo.value.ToString())))
+        || await DoesProjectUserExistAsync(task.ProjectId, Guid.Parse(newAssignedTo.value.ToString())))
       {
         return true;
       }
@@ -84,8 +83,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       IPatchDbTaskMapper mapper,
       ILogger<EditTaskCommand> logger,
       IRequestClient<ICheckProjectUsersExistenceRequest> rcCheckProjectUsers,
-      IResponseCreater responseCreater,
-      IRedisHelper redisHelper)
+      IResponseCreater responseCreater)
     {
       _taskRepository = taskRepository;
       _validator = validator;
@@ -95,7 +93,6 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       _logger = logger;
       _rcCheckProjectUsers = rcCheckProjectUsers;
       _responseCreater = responseCreater;
-      _redisHelper = redisHelper;
     }
 
     public async Task<OperationResultResponse<bool>> ExecuteAsync(Guid taskId, JsonPatchDocument<EditTaskRequest> patch)
@@ -107,7 +104,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       Guid requestUserId = _httpContextAccessor.HttpContext.GetUserId();
 
       if (!await _accessValidator.IsAdminAsync()
-        && !await DoesProjectUserExist(task.ProjectId, requestUserId))
+        && !await DoesProjectUserExistAsync(task.ProjectId, requestUserId))
       {
         return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
       }

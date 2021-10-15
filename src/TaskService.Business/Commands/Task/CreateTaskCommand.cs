@@ -13,7 +13,6 @@ using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models;
-using LT.DigitalOffice.Models.Broker.Requests.Company;
 using LT.DigitalOffice.Models.Broker.Requests.Image;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Responses.Image;
@@ -40,9 +39,8 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
     private readonly IResponseCreater _responseCreater;
     private readonly IRequestClient<ICreateImagesRequest> _rcImages;
     private readonly IRequestClient<ICheckProjectUsersExistenceRequest> _rcCheckProjectUsers;
-    private readonly IRedisHelper _redisHelper;
 
-    private async Task<bool> DoesProjectUserExist(Guid projectId, Guid userId)
+    private async Task<bool> DoesProjectUserExistAsync(Guid projectId, Guid userId)
     {
       string logMessage = "Cannot check project users existence.";
 
@@ -111,8 +109,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       ILogger<CreateTaskCommand> logger,
       IRequestClient<ICreateImagesRequest> rcImages,
       IRequestClient<ICheckProjectUsersExistenceRequest> rcCheckProjectUsers,
-      IResponseCreater responseCreater,
-      IRedisHelper redisHelper)
+      IResponseCreater responseCreater)
     {
       _repository = repository;
       _validator = validator;
@@ -123,7 +120,6 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       _accessValidator = accessValidator;
       _logger = logger;
       _responseCreater = responseCreater;
-      _redisHelper = redisHelper;
     }
 
     public async Task<OperationResultResponse<Guid>> ExecuteAsync(CreateTaskRequest request)
@@ -132,7 +128,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       var errors = new List<string>();
 
       if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveProjects)
-        && !await DoesProjectUserExist(request.ProjectId, authorId))
+        && !await DoesProjectUserExistAsync(request.ProjectId, authorId))
       {
         return _responseCreater.CreateFailureResponse<Guid>(HttpStatusCode.Forbidden);
       }

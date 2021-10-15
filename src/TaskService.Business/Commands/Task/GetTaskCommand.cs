@@ -40,7 +40,6 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
     private readonly IAccessValidator _accessValidator;
     private readonly HttpContext _httpContext;
     private readonly ITaskResponseMapper _taskResponseMapper;
-    private readonly ITaskInfoMapper _taskInfoMapper;
     private readonly IImageInfoMapper _imageMapper;
     private readonly ILogger<GetTaskCommand> _logger;
     private readonly IRequestClient<IGetImagesRequest> _rcImages;
@@ -195,7 +194,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
 
     #endregion
 
-    private async Task<bool> DoesProjectUserExist(Guid projectId, Guid userId)
+    private async Task<bool> DoesProjectUserExistAsync(Guid projectId, Guid userId)
     {
       var logMessage = "Cannot check project users existence.";
 
@@ -225,7 +224,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
 
       ProjectData project = await GetProjectAsync(projectId, errors);
 
-      if (await DoesProjectUserExist(projectId, requestUserId)
+      if (await DoesProjectUserExistAsync(projectId, requestUserId)
         || await _accessValidator.IsAdminAsync())
       {
         return (true, project);
@@ -242,7 +241,6 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       IHttpContextAccessor httpContextAccessor,
       ITaskResponseMapper taskResponseMapper,
       IImageInfoMapper imageMapper,
-      ITaskInfoMapper taskInfoMapper,
       IRequestClient<ICheckProjectUsersExistenceRequest> rcCheckProjectUsers,
       IRequestClient<IGetProjectsRequest> rcGetProjects,
       IRequestClient<IGetUsersDataRequest> rcGetUsers,
@@ -255,7 +253,6 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       _accessValidator = accessValidator;
       _httpContext = httpContextAccessor.HttpContext;
       _taskResponseMapper = taskResponseMapper;
-      _taskInfoMapper = taskInfoMapper;
       _imageMapper = imageMapper;
       _rcCheckProjectUsers = rcCheckProjectUsers;
       _rcGetProjects = rcGetProjects;

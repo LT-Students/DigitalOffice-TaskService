@@ -30,7 +30,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
     private readonly IRemoveImageRequestValidator _validator;
     private readonly IResponseCreater _responseCreater;
 
-    private bool RemoveImage(List<Guid> ids, List<string> errors)
+    private async Task<bool> RemoveImage(List<Guid> ids, List<string> errors)
     {
       if (ids == null || !ids.Any())
       {
@@ -41,10 +41,11 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
 
       try
       {
-        var response = _rcImages.GetResponse<IOperationResult<bool>>(
-          IRemoveImagesRequest.CreateObj(ids, ImageSource.Project)).Result.Message;
+        Response<IOperationResult<bool>> response =
+          await _rcImages.GetResponse<IOperationResult<bool>>(
+            IRemoveImagesRequest.CreateObj(ids, ImageSource.Project));
 
-        if (response.IsSuccess)
+        if (response.Message.IsSuccess)
         {
           return true;
         }
@@ -52,7 +53,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
         _logger.LogWarning(
           logMessage,
           string.Join('\n', ids),
-          string.Join('\n', response.Errors));
+          string.Join('\n', response.Message.Errors));
       }
       catch (Exception exc)
       {
@@ -92,9 +93,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
         return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
       }
 
-      var result = RemoveImage(request.ImagesIds, errors);
-
-      if (!result)
+      if (!await RemoveImage(request.ImagesIds, errors))
       {
         return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
       }

@@ -66,10 +66,10 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
         return projects;
       }
 
-      return await GetProjectsThroughBroker(projectId, userId, errors);
+      return await GetProjectsThroughBrokerAsync(projectId, userId, errors);
     }
 
-    private async Task<List<ProjectData>> GetProjectsThroughBroker(Guid? projectId, Guid? userId, List<string> errors)
+    private async Task<List<ProjectData>> GetProjectsThroughBrokerAsync(Guid? projectId, Guid? userId, List<string> errors)
     {
       if (!projectId.HasValue && !userId.HasValue)
       {
@@ -117,7 +117,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
 
     #endregion
 
-    private async Task<bool> DoesProjectUserExist(Guid projectId, Guid userId)
+    private async Task<bool> DoesProjectUserExistAsync(Guid projectId, Guid userId)
     {
       string logMessage = "Cannot check project users existence.";
 
@@ -169,7 +169,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
     {
       Guid userId = _httpContextAccessor.HttpContext.GetUserId();
       if (filter.ProjectId.HasValue
-        && !await DoesProjectUserExist(filter.ProjectId.Value, _httpContextAccessor.HttpContext.GetUserId()))
+        && !await DoesProjectUserExistAsync(filter.ProjectId.Value, _httpContextAccessor.HttpContext.GetUserId()))
       {
         return _responseCreater.CreateFailureFindResponse<TaskInfo>(HttpStatusCode.Forbidden);
       }
