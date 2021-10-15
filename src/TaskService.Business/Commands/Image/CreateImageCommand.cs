@@ -14,11 +14,14 @@ using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Requests.Image;
+using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Responses.Image;
+using LT.DigitalOffice.ProjectService.Data.Interfaces;
 using LT.DigitalOffice.ProjectService.Models.Dto.Requests;
 using LT.DigitalOffice.TaskService.Business.Commands.Image.Interfaces;
 using LT.DigitalOffice.TaskService.Data.Interfaces;
 using LT.DigitalOffice.TaskService.Mappers.Db.Interfaces;
+using LT.DigitalOffice.TaskService.Models.Db;
 using LT.DigitalOffice.TaskService.Models.Dto.Requests;
 using LT.DigitalOffice.TaskService.Validation.Image.Interfaces;
 using MassTransit;
@@ -29,7 +32,8 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
 {
   public class CreateImageCommand : ICreateImageCommand
   {
-    private readonly IImageRepository _repository;
+    private readonly IImageRepository _imageRepository;
+    private readonly ITaskRepository _taskRepository;
     private readonly IRequestClient<ICreateImagesRequest> _rcImages;
     private readonly ILogger<CreateImageCommand> _logger;
     private readonly IAccessValidator _accessValidator;
@@ -37,6 +41,31 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
     private readonly IDbTaskImageMapper _dbProjectImageMapper;
     private readonly ICreateImageRequestValidator _validator;
     private readonly IResponseCreater _responseCreater;
+    private readonly IRequestClient<ICheckProjectUsersExistenceRequest> _rcCheckProjectUsers;
+
+    private async Task<bool> DoesProjectUserExistAsync(Guid projectId, Guid userId)
+    {
+      string logMessage = "Cannot check project users existence.";
+
+      try
+      {
+        Response<IOperationResult<List<Guid>>> response = await _rcCheckProjectUsers.GetResponse<IOperationResult<List<Guid>>>(
+          ICheckProjectUsersExistenceRequest.CreateObj(projectId, new() { userId }));
+
+        if (response.Message.IsSuccess)
+        {
+          return response.Message.Body?.Any() ?? false;
+        }
+
+        _logger.LogWarning(logMessage);
+      }
+      catch (Exception exc)
+      {
+        _logger.LogError(exc, logMessage);
+      }
+
+      return false;
+    }
 
     private async Task<List<Guid>> CreateImagesAsync(List<ImageContent> images, Guid userId, List<string> errors)
     {
@@ -77,8 +106,10 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
     }
 
     public CreateImageCommand(
-      IImageRepository repository,
+      IImageRepository imageRepository,
+      ITaskRepository taskRepository,
       IRequestClient<ICreateImagesRequest> rcImages,
+      IRequestClient<ICheckProjectUsersExistenceRequest> rcCheckProjectUsers,
       ILogger<CreateImageCommand> logger,
       IAccessValidator accessValidator,
       IHttpContextAccessor httpContextAccessor,
@@ -86,8 +117,10 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
       ICreateImageRequestValidator validator,
       IResponseCreater responseCreater)
     {
-      _repository = repository;
+      _imageRepository = imageRepository;
+      _taskRepository = taskRepository;
       _rcImages = rcImages;
+      _rcCheckProjectUsers = rcCheckProjectUsers;
       _logger = logger;
       _accessValidator = accessValidator;
       _httpContextAccessor = httpContextAccessor;
@@ -98,7 +131,15 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
 
     public async Task<OperationResultResponse<List<Guid>>> ExecuteAsync(CreateImageRequest request)
     {
-      if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveProjects)) // TODO rights
+      DbTask task = await _taskRepository.GetAsync(request.TaskId, false);
+
+      if (task == null)
+      {
+        return _responseCreater.CreateFailureResponse<List<Guid>>(HttpStatusCode.BadRequest, new() { "Task must exist." });
+      }
+
+      if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveProjects)
+        && !await DoesProjectUserExistAsync(task.ProjectId, _httpContextAccessor.HttpContext.GetUserId()))
       {
         return _responseCreater.CreateFailureResponse<List<Guid>>(HttpStatusCode.Forbidden);
       }
@@ -125,7 +166,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
       return new()
       {
         Status = OperationResultStatusType.FullSuccess,
-        Body = await _repository.CreateAsync(imagesIds.Select(imageId =>
+        Body = await _imageRepository.CreateAsync(imagesIds.Select(imageId =>
           _dbProjectImageMapper.Map(request, imageId))
           .ToList())
       };

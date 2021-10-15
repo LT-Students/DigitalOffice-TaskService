@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using FluentValidation;
-using LT.DigitalOffice.ProjectService.Data.Interfaces;
 using LT.DigitalOffice.TaskService.Models.Dto.Requests;
 using LT.DigitalOffice.TaskService.Validation.Image.Interfaces;
 
@@ -9,14 +8,9 @@ namespace LT.DigitalOffice.TaskService.Validation.Image
   public class CreateImageRequestValidator : AbstractValidator<CreateImageRequest>, ICreateImageRequestValidator
   {
     public CreateImageRequestValidator(
-      ITaskRepository taskRepository,
       IImageValidator imageValidator)
     {
       List<string> errors = new();
-
-      RuleFor(request => request.TaskId)
-        .MustAsync(async (id, _) => await taskRepository.DoesExistAsync(id))
-        .WithMessage("Task must exist.");
 
       RuleFor(images => images)
         .NotNull().WithMessage("List must not be null.")
