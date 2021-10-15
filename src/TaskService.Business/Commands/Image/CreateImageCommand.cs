@@ -138,7 +138,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
         return _responseCreater.CreateFailureResponse<List<Guid>>(HttpStatusCode.BadRequest, new() { "Task must exist." });
       }
 
-      if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveProjects)
+      if (!await _accessValidator.IsAdminAsync()
         && !await DoesProjectUserExistAsync(task.ProjectId, _httpContextAccessor.HttpContext.GetUserId()))
       {
         return _responseCreater.CreateFailureResponse<List<Guid>>(HttpStatusCode.Forbidden);

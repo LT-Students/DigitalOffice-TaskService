@@ -127,7 +127,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       var authorId = _httpContextAccessor.HttpContext.GetUserId();
       var errors = new List<string>();
 
-      if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveProjects)
+      if (!await _accessValidator.IsAdminAsync()
         && !await DoesProjectUserExistAsync(request.ProjectId, authorId))
       {
         return _responseCreater.CreateFailureResponse<Guid>(HttpStatusCode.Forbidden);

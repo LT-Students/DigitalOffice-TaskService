@@ -45,7 +45,7 @@ namespace LT.DigitalOffice.ProjectService.Business.Commands
 
     public async Task<OperationResultResponse<Guid>> ExecuteAsync(CreateTaskPropertyRequest request)
     {
-      if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveProjects))
+      if (!await _accessValidator.IsAdminAsync())
       {
         return _responseCreater.CreateFailureResponse<Guid>(HttpStatusCode.Forbidden);
       }

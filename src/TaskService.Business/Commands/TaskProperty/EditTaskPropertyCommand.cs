@@ -78,7 +78,7 @@ namespace LT.DigitalOffice.ProjectService.Business.Commands.Task
     {
       DbTaskProperty taskProperty = await _taskPropertyRepository.GetAsync(taskPropertyId);
 
-      if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveProjects))
+      if (!await _accessValidator.IsAdminAsync())
       {
         return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
       }
