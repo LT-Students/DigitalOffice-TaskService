@@ -21,7 +21,7 @@ namespace LT.DigitalOffice.TaskService.Validation.TaskProperty
     private readonly IRequestClient<ICheckProjectsExistence> _rcCheckProjects;
     private readonly ILogger<EditTaskPropertyRequestValidator> _logger;
 
-    private async Task<bool> DoesProjectExist(Guid projectId)
+    private async Task<bool> DoesProjectExistAsync(Guid projectId)
     {
       var logMessage = "Cannot check project existence.";
 
@@ -44,17 +44,6 @@ namespace LT.DigitalOffice.TaskService.Validation.TaskProperty
       }
 
       return false;
-    }
-
-    public EditTaskPropertyRequestValidator(
-      IRequestClient<ICheckProjectsExistence> rcCheckProjects,
-      ILogger<EditTaskPropertyRequestValidator> logger)
-    {
-      _rcCheckProjects = rcCheckProjects;
-      _logger = logger;
-
-      RuleForEach(x => x.Operations)
-        .Custom(HandleInternalPropertyValidation);
     }
 
     private void HandleInternalPropertyValidation(Operation<EditTaskPropertyRequest> requestedOperation, CustomContext context)
@@ -137,7 +126,7 @@ namespace LT.DigitalOffice.TaskService.Validation.TaskProperty
           x => x == OperationType.Replace,
           new()
           {
-            { async (x) => Guid.TryParse(x.value.ToString(), out var result) && await DoesProjectExist(result), "Incorrect project id." }
+            { async (x) => Guid.TryParse(x.value.ToString(), out var result) && await DoesProjectExistAsync(result), "Incorrect project id." }
           });
 
       #endregion
@@ -153,6 +142,17 @@ namespace LT.DigitalOffice.TaskService.Validation.TaskProperty
           });
 
       #endregion
+    }
+
+    public EditTaskPropertyRequestValidator(
+      IRequestClient<ICheckProjectsExistence> rcCheckProjects,
+      ILogger<EditTaskPropertyRequestValidator> logger)
+    {
+      _rcCheckProjects = rcCheckProjects;
+      _logger = logger;
+
+      RuleForEach(x => x.Operations)
+        .Custom(HandleInternalPropertyValidation);
     }
   }
 }

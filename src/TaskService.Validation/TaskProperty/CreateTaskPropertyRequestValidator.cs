@@ -17,7 +17,7 @@ namespace LT.DigitalOffice.TaskService.Validation.TaskProperty
     private readonly IRequestClient<ICheckProjectsExistence> _rcCheckProjects;
     private readonly ILogger<CreateTaskPropertyRequestValidator> _logger;
 
-    private async Task<bool> DoesProjectExist(Guid projectId)
+    private async Task<bool> DoesProjectExistAsync(Guid projectId)
     {
       var logMessage = "Cannot check project existence.";
 
@@ -69,7 +69,7 @@ namespace LT.DigitalOffice.TaskService.Validation.TaskProperty
       });
 
       RuleFor(tp => tp.ProjectId)
-        .MustAsync(async (id, _) => await DoesProjectExist(id))
+        .MustAsync(async (id, _) => await DoesProjectExistAsync(id))
         .WithMessage("Project must exist.");
     }
   }
