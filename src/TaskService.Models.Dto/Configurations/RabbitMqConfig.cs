@@ -40,9 +40,6 @@ namespace LT.DigitalOffice.ProjectService.Models.Dto.Configurations
 
     // user
 
-    [AutoInjectRequest(typeof(ICheckUsersExistence))]
-    public string CheckUsersExistenceEndpoint { get; set; }
-
     [AutoInjectRequest(typeof(IGetUsersDataRequest))]
     public string GetUsersDataEndpoint { get; set; }
   }
