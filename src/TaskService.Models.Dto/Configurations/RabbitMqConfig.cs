@@ -38,14 +38,6 @@ namespace LT.DigitalOffice.ProjectService.Models.Dto.Configurations
     [AutoInjectRequest(typeof(ICreateImagesRequest))]
     public string CreateImagesEndpoint { get; set; }
 
-    // company
-
-    [AutoInjectRequest(typeof(IGetDepartmentsRequest))]
-    public string GetDepartmentsEndpoint { get; set; }
-
-    [AutoInjectRequest(typeof(IGetCompanyEmployeesRequest))]
-    public string GetCompanyEmployeesEndpoint { get; set; }
-
     // user
 
     [AutoInjectRequest(typeof(ICheckUsersExistence))]

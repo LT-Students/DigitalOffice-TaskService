@@ -46,60 +46,11 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
     private readonly IRequestClient<IGetImagesRequest> _rcImages;
     private readonly IRequestClient<IGetUsersDataRequest> _rcGetUsers;
     private readonly IRequestClient<IGetProjectsRequest> _rcGetProjects;
-    private readonly IRequestClient<IGetDepartmentsRequest> _rcGetDepartment;
     private readonly IRequestClient<ICheckProjectUsersExistenceRequest> _rcCheckProjectUsers;
     private readonly IRedisHelper _redisHelper;
     private readonly IResponseCreater _responseCreater;
 
     #region private
-
-    #region get departments
-
-    private async Task<DepartmentData> GetDepartmentAsync(Guid departmentId, List<string> errors)
-    {
-      DepartmentData department =
-        (await _redisHelper.GetAsync<List<DepartmentData>>(Cache.Departments, departmentId.GetRedisCacheHashCode()))?.FirstOrDefault();
-
-      if (department != null)
-      {
-        _logger.LogInformation("Department (with id {departmentId}) was taken from redis.", departmentId);
-
-        return department;
-      }
-
-      return await GetDepartmentThroughBrokerAsync(departmentId, errors);
-    }
-
-    private async Task<DepartmentData> GetDepartmentThroughBrokerAsync(Guid departmentId, List<string> errors)
-    {
-      var errorMessage = "Cannot check rights. Please try again later.";
-
-      try
-      {
-        Response<IOperationResult<IGetDepartmentsResponse>> response =
-          await _rcGetDepartment.GetResponse<IOperationResult<IGetDepartmentsResponse>>(
-           IGetDepartmentsRequest.CreateObj(new() { departmentId }));
-
-        if (response.Message.IsSuccess)
-        {
-          _logger.LogInformation("Department (with id {departmentId}) was taken through broker.", departmentId);
-
-          return response.Message.Body.Departments.FirstOrDefault();
-        }
-
-        _logger.LogWarning("Can not find department with Id: '{departmentId}'", departmentId);
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, errorMessage);
-      }
-
-      errors.Add(errorMessage);
-
-      return null;
-    }
-
-    #endregion
 
     #region get usersDatas
 
@@ -275,8 +226,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       ProjectData project = await GetProjectAsync(projectId, errors);
 
       if (await DoesProjectUserExist(projectId, requestUserId)
-        || await _accessValidator.IsAdminAsync()
-        || (await GetDepartmentAsync(requestUserId, errors))?.DirectorUserId == requestUserId) // do we need this?
+        || await _accessValidator.IsAdminAsync())
       {
         return (true, project);
       }
@@ -294,7 +244,6 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       IImageInfoMapper imageMapper,
       ITaskInfoMapper taskInfoMapper,
       IRequestClient<ICheckProjectUsersExistenceRequest> rcCheckProjectUsers,
-      IRequestClient<IGetDepartmentsRequest> rcGetDepartment,
       IRequestClient<IGetProjectsRequest> rcGetProjects,
       IRequestClient<IGetUsersDataRequest> rcGetUsers,
       IRequestClient<IGetImagesRequest> rcImages,
@@ -309,7 +258,6 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       _taskInfoMapper = taskInfoMapper;
       _imageMapper = imageMapper;
       _rcCheckProjectUsers = rcCheckProjectUsers;
-      _rcGetDepartment = rcGetDepartment;
       _rcGetProjects = rcGetProjects;
       _rcGetUsers = rcGetUsers;
       _rcImages = rcImages;

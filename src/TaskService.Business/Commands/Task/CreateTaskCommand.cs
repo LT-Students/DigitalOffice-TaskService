@@ -9,16 +9,13 @@ using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
-using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models;
-using LT.DigitalOffice.Models.Broker.Models.Company;
 using LT.DigitalOffice.Models.Broker.Requests.Company;
 using LT.DigitalOffice.Models.Broker.Requests.Image;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
-using LT.DigitalOffice.Models.Broker.Responses.Company;
 using LT.DigitalOffice.Models.Broker.Responses.Image;
 using LT.DigitalOffice.ProjectService.Data.Interfaces;
 using LT.DigitalOffice.ProjectService.Models.Dto.Requests;
@@ -42,7 +39,6 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
     private readonly ILogger<CreateTaskCommand> _logger;
     private readonly IResponseCreater _responseCreater;
     private readonly IRequestClient<ICreateImagesRequest> _rcImages;
-    private readonly IRequestClient<IGetCompanyEmployeesRequest> _rcGetCompanyEmployee;
     private readonly IRequestClient<ICheckProjectUsersExistenceRequest> _rcCheckProjectUsers;
     private readonly IRedisHelper _redisHelper;
 
@@ -68,51 +64,6 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       }
 
       return false;
-    }
-
-    private async Task<DepartmentData> GetDepartmentAsync(Guid authorId, List<string> errors)
-    {
-      DepartmentData department =
-        (await _redisHelper.GetAsync<List<DepartmentData>>(Cache.Departments, authorId.GetRedisCacheHashCode()))?.FirstOrDefault();
-
-      if (department != null)
-      {
-        _logger.LogInformation($"Department (by author with id {authorId}) was taken from redis.");
-
-        return department;
-      }
-
-      return await GetDepartmentThroughBrokerAsync(authorId, errors);
-    }
-
-
-    private async Task<DepartmentData> GetDepartmentThroughBrokerAsync(Guid authorId, List<string> errors)
-    {
-      var errorMessage = "Cannot create task. Please try again later.";
-
-      try
-      {
-        var response =
-          await _rcGetCompanyEmployee.GetResponse<IOperationResult<IGetCompanyEmployeesResponse>>(
-           IGetCompanyEmployeesRequest.CreateObj(new() { authorId }, includeDepartments: true));
-
-        if (response.Message.IsSuccess)
-        {
-          _logger.LogInformation($"Department (by author with id {authorId}) was taken through broker.");
-
-          return response.Message.Body.Departments.FirstOrDefault();
-        }
-
-        _logger.LogWarning("Can not find department contain user with Id: '{authorId}'", authorId);
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, errorMessage);
-
-        errors.Add(errorMessage);
-      }
-
-      return null;
     }
 
     private async Task<List<Guid>> CreateImageAsync(List<ImageContent> projectImages, Guid userId, List<string> errors)
@@ -159,7 +110,6 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       IAccessValidator accessValidator,
       ILogger<CreateTaskCommand> logger,
       IRequestClient<ICreateImagesRequest> rcImages,
-      IRequestClient<IGetCompanyEmployeesRequest> rcGetCompanyEmployees,
       IRequestClient<ICheckProjectUsersExistenceRequest> rcCheckProjectUsers,
       IResponseCreater responseCreater,
       IRedisHelper redisHelper)
@@ -169,7 +119,6 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       _mapperTask = mapperTask;
       _httpContextAccessor = httpContextAccessor;
       _rcImages = rcImages;
-      _rcGetCompanyEmployee = rcGetCompanyEmployees;
       _rcCheckProjectUsers = rcCheckProjectUsers;
       _accessValidator = accessValidator;
       _logger = logger;
@@ -183,8 +132,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       var errors = new List<string>();
 
       if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveProjects)
-        && !await DoesProjectUserExist(request.ProjectId, authorId)
-        && !((await GetDepartmentAsync(authorId, errors))?.DirectorUserId == authorId))
+        && !await DoesProjectUserExist(request.ProjectId, authorId))
       {
         return _responseCreater.CreateFailureResponse<Guid>(HttpStatusCode.Forbidden);
       }
