@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using FluentValidation;
+﻿using FluentValidation;
 using LT.DigitalOffice.TaskService.Models.Dto.Requests;
 using LT.DigitalOffice.TaskService.Validation.Image.Interfaces;
 
@@ -10,8 +9,6 @@ namespace LT.DigitalOffice.TaskService.Validation.Image
     public CreateImageRequestValidator(
       IImageValidator imageValidator)
     {
-      List<string> errors = new();
-
       RuleFor(images => images)
         .NotNull().WithMessage("List must not be null.")
         .NotEmpty().WithMessage("List must not be empty.");
