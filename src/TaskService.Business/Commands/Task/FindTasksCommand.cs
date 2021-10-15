@@ -48,8 +48,6 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
         return null;
       }
 
-      List<ProjectData> projects = null;
-
       if (projectId.HasValue)
       {
         (projects, _) = await _redisHelper.GetAsync<(List<ProjectData>, int)>(Cache.Projects, projectId.Value.GetRedisCacheHashCode());
