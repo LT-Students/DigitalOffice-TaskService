@@ -46,7 +46,9 @@ namespace LT.DigitalOffice.TaskService.Validation.TaskProperty
       return false;
     }
 
-    private void HandleInternalPropertyValidation(Operation<EditTaskPropertyRequest> requestedOperation, CustomContext context)
+    private async System.Threading.Tasks.Task HandleInternalPropertyValidationAsync(
+      Operation<EditTaskPropertyRequest> requestedOperation,
+      CustomContext context)
     {
       Context = context;
       RequestedOperation = requestedOperation;
@@ -113,7 +115,7 @@ namespace LT.DigitalOffice.TaskService.Validation.TaskProperty
 
       #region ProjectId
 
-      AddFailureForPropertyIfAsync(
+      await AddFailureForPropertyIfAsync(
         nameof(EditTaskPropertyRequest.ProjectId),
         x => x == OperationType.Replace,
         new()
@@ -144,7 +146,7 @@ namespace LT.DigitalOffice.TaskService.Validation.TaskProperty
       _logger = logger;
 
       RuleForEach(x => x.Operations)
-        .Custom(HandleInternalPropertyValidation);
+        .CustomAsync(async (x, context, token) => await HandleInternalPropertyValidationAsync(x, context));
     }
   }
 }
