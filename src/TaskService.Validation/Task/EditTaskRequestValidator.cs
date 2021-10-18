@@ -15,7 +15,8 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
   {
     private readonly ITaskPropertyRepository _taskPropertyRepository;
 
-    private void HandleInternalPropertyValidation(Operation<EditTaskRequest> requestedOperation, CustomContext context)
+    private async System.Threading.Tasks.Task HandleInternalPropertyValidationAsync(
+      Operation<EditTaskRequest> requestedOperation, CustomContext context)
     {
 
       #region paths
@@ -92,7 +93,7 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
           { x => Guid.TryParse(x.value.ToString(), out var _), "Incorrect format of PriorityId." }
         });
 
-      AddFailureForPropertyIfAsync(
+      await AddFailureForPropertyIfAsync(
         nameof(EditTaskRequest.PriorityId),
         x => x == OperationType.Replace,
         new()
@@ -112,7 +113,7 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
           { x => Guid.TryParse(x.value.ToString(), out var _), "Incorrect format of StatusId." }
         });
 
-      AddFailureForPropertyIfAsync(
+      await AddFailureForPropertyIfAsync(
         nameof(EditTaskRequest.StatusId),
         x => x == OperationType.Replace,
         new()
@@ -132,7 +133,7 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
           { x => Guid.TryParse(x.value.ToString(), out var _), "Incorrect format of TypeId." }
         });
 
-      AddFailureForPropertyIfAsync(
+      await AddFailureForPropertyIfAsync(
         nameof(EditTaskRequest.TypeId),
         x => x == OperationType.Replace,
         new()
@@ -161,7 +162,7 @@ namespace LT.DigitalOffice.TaskService.Validation.Task
       _taskPropertyRepository = taskPropertyRepository;
 
       RuleForEach(x => x.Operations)
-        .Custom(HandleInternalPropertyValidation);
+        .CustomAsync(async (x, context, token) => await HandleInternalPropertyValidationAsync(x, context));
     }
   }
 }
