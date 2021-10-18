@@ -16,7 +16,7 @@ namespace LT.DigitalOffice.TaskService.Controllers
   public class TaskController : ControllerBase
   {
     [HttpGet("find")]
-    public async Task<FindResultResponse<TaskInfo>> Find(
+    public async Task<FindResultResponse<TaskInfo>> FindAsync(
       [FromServices] IFindTasksCommand command,
       [FromQuery] FindTasksFilter filter)
     {
@@ -24,7 +24,7 @@ namespace LT.DigitalOffice.TaskService.Controllers
     }
 
     [HttpGet("get")]
-    public async Task<OperationResultResponse<TaskResponse>> Get(
+    public async Task<OperationResultResponse<TaskResponse>> GetAsync(
       [FromQuery] Guid taskId,
       [FromServices] IGetTaskCommand command)
     {
@@ -32,7 +32,7 @@ namespace LT.DigitalOffice.TaskService.Controllers
     }
 
     [HttpPost("create")]
-    public async Task<OperationResultResponse<Guid>> Create(
+    public async Task<OperationResultResponse<Guid>> CreateAsync(
       [FromServices] ICreateTaskCommand command,
       [FromBody] CreateTaskRequest request)
     {
@@ -40,7 +40,7 @@ namespace LT.DigitalOffice.TaskService.Controllers
     }
 
     [HttpPatch("edit")]
-    public async Task<OperationResultResponse<bool>> Edit(
+    public async Task<OperationResultResponse<bool>> EditAsync(
       [FromQuery] Guid taskId,
       [FromBody] JsonPatchDocument<EditTaskRequest> request,
       [FromServices] IEditTaskCommand command)

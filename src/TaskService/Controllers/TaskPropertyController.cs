@@ -15,7 +15,7 @@ namespace LT.DigitalOffice.TaskService.Controllers
   public class TaskPropertyController : ControllerBase
   {
     [HttpPost("create")]
-    public async Task<OperationResultResponse<Guid>> Create(
+    public async Task<OperationResultResponse<Guid>> CreateAsync(
       [FromServices] ICreateTaskPropertyCommand command,
       [FromBody] CreateTaskPropertyRequest request)
     {
@@ -23,7 +23,7 @@ namespace LT.DigitalOffice.TaskService.Controllers
     }
 
     [HttpGet("find")]
-    public async Task<FindResultResponse<TaskPropertyInfo>> Find(
+    public async Task<FindResultResponse<TaskPropertyInfo>> FindAsync(
       [FromServices] IFindTaskPropertyCommand command,
       [FromQuery] FindTaskPropertiesFilter filter)
     {
@@ -31,7 +31,7 @@ namespace LT.DigitalOffice.TaskService.Controllers
     }
 
     [HttpPatch("edit")]
-    public async Task<OperationResultResponse<bool>> Edit(
+    public async Task<OperationResultResponse<bool>> EditAsync(
       [FromQuery] Guid taskPropertyId,
       [FromBody] JsonPatchDocument<EditTaskPropertyRequest> request,
       [FromServices] IEditTaskPropertyCommand command)
