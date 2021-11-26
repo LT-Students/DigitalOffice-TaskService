@@ -1,0 +1,11 @@
+﻿{
+  "profiles": {
+    "TaskService": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "externalUrlConfiguration": true
+    }
+  }
+}
