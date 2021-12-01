@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.Validators;
-using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Validators;
 using LT.DigitalOffice.Models.Broker.Common;
 using LT.DigitalOffice.TaskService.Models.Dto.Enums;

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.Broker;
-using LT.DigitalOffice.Kernel.Constants;
+using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
+using LT.DigitalOffice.Kernel.RedisSupport.Constants;
+using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
+using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Kernel.Validators.Interfaces;
 using LT.DigitalOffice.Models.Broker.Models;
@@ -32,7 +34,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
     private readonly IBaseFindFilterValidator _findFilterValidator;
     private readonly ILogger<FindTasksCommand> _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IResponseCreater _responseCreater;
+    private readonly IResponseCreator _responseCreator;
     private readonly IRedisHelper _redisHelper;
     private readonly IRequestClient<IGetProjectsRequest> _rcGetProjects;
     private readonly IRequestClient<ICheckProjectUsersExistenceRequest> _rcCheckProjectUsers;
@@ -148,7 +150,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       IBaseFindFilterValidator findFilterValidator,
       ILogger<FindTasksCommand> logger,
       IHttpContextAccessor httpContextAccessor,
-      IResponseCreater responseCreater,
+      IResponseCreator responseCreator,
       IRedisHelper redisHelper,
       IRequestClient<IGetProjectsRequest> rcGetProjects,
       IRequestClient<ICheckProjectUsersExistenceRequest> rcCheckProjectUsers)
@@ -158,7 +160,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       _findFilterValidator = findFilterValidator;
       _logger = logger;
       _httpContextAccessor = httpContextAccessor;
-      _responseCreater = responseCreater;
+      _responseCreator = responseCreator;
       _redisHelper = redisHelper;
       _rcGetProjects = rcGetProjects;
       _rcCheckProjectUsers = rcCheckProjectUsers;
@@ -170,12 +172,12 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       if (filter.ProjectId.HasValue
         && !await DoesProjectUserExistAsync(filter.ProjectId.Value, _httpContextAccessor.HttpContext.GetUserId()))
       {
-        return _responseCreater.CreateFailureFindResponse<TaskInfo>(HttpStatusCode.Forbidden);
+        return _responseCreator.CreateFailureFindResponse<TaskInfo>(HttpStatusCode.Forbidden);
       }
 
       if (!_findFilterValidator.ValidateCustom(filter, out var errors))
       {
-        _responseCreater.CreateFailureFindResponse<TaskInfo>(HttpStatusCode.BadRequest, errors);
+        _responseCreator.CreateFailureFindResponse<TaskInfo>(HttpStatusCode.BadRequest, errors);
       }
 
       List<ProjectData> projectDatas = await GetProjectsAsync(filter.ProjectId, userId, errors);

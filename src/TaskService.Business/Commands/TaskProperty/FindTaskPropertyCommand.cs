@@ -21,25 +21,25 @@ namespace LT.DigitalOffice.ProjectService.Business.Commands
     private readonly ITaskPropertyInfoMapper _mapper;
     private readonly ITaskPropertyRepository _repository;
     private readonly IBaseFindFilterValidator _findRequestValidator;
-    private readonly IResponseCreater _responseCreater;
+    private readonly IResponseCreator _responseCreator;
 
     public FindTaskPropertyCommand(
       ITaskPropertyRepository repository,
       ITaskPropertyInfoMapper mapper,
       IBaseFindFilterValidator findRequestValidator,
-      IResponseCreater responseCreater)
+      IResponseCreator responseCreator)
     {
       _mapper = mapper;
       _repository = repository;
       _findRequestValidator = findRequestValidator;
-      _responseCreater = responseCreater;
+      _responseCreator = responseCreator;
     }
 
     public async Task<FindResultResponse<TaskPropertyInfo>> ExecuteAsync(FindTaskPropertiesFilter filter)
     {
       if (!_findRequestValidator.ValidateCustom(filter, out List<string> errors))
       {
-        return _responseCreater.CreateFailureFindResponse<TaskPropertyInfo>(HttpStatusCode.BadRequest, errors);
+        return _responseCreator.CreateFailureFindResponse<TaskPropertyInfo>(HttpStatusCode.BadRequest, errors);
       }
 
       (List<DbTaskProperty> properties, int totalCount) = await _repository.FindAsync(filter);

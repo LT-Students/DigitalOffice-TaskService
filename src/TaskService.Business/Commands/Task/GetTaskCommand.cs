@@ -3,21 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Broker;
-using LT.DigitalOffice.Kernel.Constants;
+using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
+using LT.DigitalOffice.Kernel.RedisSupport.Constants;
+using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
+using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models;
-using LT.DigitalOffice.Models.Broker.Models.Company;
-using LT.DigitalOffice.Models.Broker.Requests.Company;
 using LT.DigitalOffice.Models.Broker.Requests.Image;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Requests.User;
-using LT.DigitalOffice.Models.Broker.Responses.Company;
 using LT.DigitalOffice.Models.Broker.Responses.Image;
 using LT.DigitalOffice.Models.Broker.Responses.Project;
 using LT.DigitalOffice.Models.Broker.Responses.User;
@@ -47,7 +46,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
     private readonly IRequestClient<IGetProjectsRequest> _rcGetProjects;
     private readonly IRequestClient<ICheckProjectUsersExistenceRequest> _rcCheckProjectUsers;
     private readonly IRedisHelper _redisHelper;
-    private readonly IResponseCreater _responseCreater;
+    private readonly IResponseCreator _responseCreator;
 
     #region private
 
@@ -247,7 +246,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       IRequestClient<IGetImagesRequest> rcImages,
       ILogger<GetTaskCommand> logger,
       IRedisHelper redisHelper,
-      IResponseCreater responseCreater)
+      IResponseCreator responseCreator)
     {
       _taskRepository = taskRepository;
       _accessValidator = accessValidator;
@@ -260,7 +259,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       _rcImages = rcImages;
       _logger = logger;
       _redisHelper = redisHelper;
-      _responseCreater = responseCreater;
+      _responseCreator = responseCreator;
     }
 
     public async Task<OperationResultResponse<TaskResponse>> ExecuteAsync(Guid taskId)
@@ -271,7 +270,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
 
       if (dbTask == null)
       {
-        return _responseCreater.CreateFailureResponse<TaskResponse>(HttpStatusCode.NotFound);
+        return _responseCreator.CreateFailureResponse<TaskResponse>(HttpStatusCode.NotFound);
       }
 
       (bool hasRights, ProjectData project) = await Authorization(dbTask.ProjectId, errors);
@@ -280,7 +279,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       {
         errors.Add("Not enough rights.");
 
-        return _responseCreater.CreateFailureResponse<TaskResponse>(HttpStatusCode.Forbidden, errors);
+        return _responseCreator.CreateFailureResponse<TaskResponse>(HttpStatusCode.Forbidden, errors);
       }
 
       List<Guid> userIds = new() { dbTask.CreatedBy };

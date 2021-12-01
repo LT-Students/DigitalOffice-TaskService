@@ -4,8 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentValidation.Results;
-using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Constants;
+using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
@@ -28,7 +27,7 @@ namespace LT.DigitalOffice.ProjectService.Business.Commands.Task
     private readonly ITaskPropertyRepository _taskPropertyRepository;
     private readonly IPatchDbTaskPropertyMapper _mapper;
     private readonly IEditTaskPropertyRequestValidator _validator;
-    private readonly IResponseCreater _responseCreater;
+    private readonly IResponseCreator _responseCreator;
 
     private async Task<bool> ValidateAsync(Guid? projectId, JsonPatchDocument<EditTaskPropertyRequest> patch, List<string> errors)
     {
@@ -64,14 +63,14 @@ namespace LT.DigitalOffice.ProjectService.Business.Commands.Task
       ITaskPropertyRepository taskPropertyRepository,
       IPatchDbTaskPropertyMapper mapper,
       IEditTaskPropertyRequestValidator validator,
-      IResponseCreater responseCreater)
+      IResponseCreator responseCreator)
     {
       _httpContextAccessor = httpContextAccessor;
       _accessValidator = accessValidator;
       _taskPropertyRepository = taskPropertyRepository;
       _mapper = mapper;
       _validator = validator;
-      _responseCreater = responseCreater;
+      _responseCreator = responseCreator;
     }
 
     public async Task<OperationResultResponse<bool>> ExecuteAsync(Guid taskPropertyId, JsonPatchDocument<EditTaskPropertyRequest> patch)
@@ -80,7 +79,7 @@ namespace LT.DigitalOffice.ProjectService.Business.Commands.Task
 
       if (!await _accessValidator.IsAdminAsync())
       {
-        return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
+        return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
       }
 
       ValidationResult validationResult = await _validator.ValidateAsync(patch);
@@ -89,7 +88,7 @@ namespace LT.DigitalOffice.ProjectService.Business.Commands.Task
 
       if (!validationResult.IsValid || !await ValidateAsync(taskProperty.ProjectId, patch, errors))
       {
-        return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
+        return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
       }
 
       OperationResultResponse<bool> response = new();
