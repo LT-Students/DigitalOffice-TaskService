@@ -3,8 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentValidation.Results;
-using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Constants;
+using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
@@ -25,7 +24,7 @@ namespace LT.DigitalOffice.ProjectService.Business.Commands
     private readonly ICreateTaskPropertyRequestValidator _validator;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ITaskPropertyRepository _taskPropertyRepository;
-    private readonly IResponseCreater _responseCreater;
+    private readonly IResponseCreator _responseCreator;
 
     public CreateTaskPropertyCommand(
       IDbTaskPropertyMapper mapper,
@@ -33,28 +32,28 @@ namespace LT.DigitalOffice.ProjectService.Business.Commands
       ITaskPropertyRepository taskPropertyRepository,
       ICreateTaskPropertyRequestValidator validator,
       IHttpContextAccessor httpContextAccessor,
-      IResponseCreater responseCreater)
+      IResponseCreator responseCreator)
     {
       _mapper = mapper;
       _validator = validator;
       _accessValidator = accessValidator;
       _taskPropertyRepository = taskPropertyRepository;
       _httpContextAccessor = httpContextAccessor;
-      _responseCreater = responseCreater;
+      _responseCreator = responseCreator;
     }
 
     public async Task<OperationResultResponse<Guid>> ExecuteAsync(CreateTaskPropertyRequest request)
     {
       if (!await _accessValidator.IsAdminAsync())
       {
-        return _responseCreater.CreateFailureResponse<Guid>(HttpStatusCode.Forbidden);
+        return _responseCreator.CreateFailureResponse<Guid>(HttpStatusCode.Forbidden);
       }
 
       ValidationResult validationResult = await _validator.ValidateAsync(request);
 
       if (!validationResult.IsValid)
       {
-        return _responseCreater.CreateFailureResponse<Guid>(
+        return _responseCreator.CreateFailureResponse<Guid>(
           HttpStatusCode.BadRequest, validationResult.Errors.Select(vf => vf.ErrorMessage).ToList());
       }
 

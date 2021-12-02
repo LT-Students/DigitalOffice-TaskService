@@ -4,9 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentValidation.Results;
-using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Broker;
-using LT.DigitalOffice.Kernel.Constants;
+using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
@@ -40,7 +39,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IDbTaskImageMapper _dbProjectImageMapper;
     private readonly ICreateImageRequestValidator _validator;
-    private readonly IResponseCreater _responseCreater;
+    private readonly IResponseCreator _responseCreator;
     private readonly IRequestClient<ICheckProjectUsersExistenceRequest> _rcCheckProjectUsers;
 
     private async Task<bool> DoesProjectUserExistAsync(Guid projectId, Guid userId)
@@ -115,7 +114,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
       IHttpContextAccessor httpContextAccessor,
       IDbTaskImageMapper dbProjectImageMapper,
       ICreateImageRequestValidator validator,
-      IResponseCreater responseCreater)
+      IResponseCreator responseCreator)
     {
       _imageRepository = imageRepository;
       _taskRepository = taskRepository;
@@ -126,7 +125,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
       _httpContextAccessor = httpContextAccessor;
       _dbProjectImageMapper = dbProjectImageMapper;
       _validator = validator;
-      _responseCreater = responseCreater;
+      _responseCreator = responseCreator;
     }
 
     public async Task<OperationResultResponse<List<Guid>>> ExecuteAsync(CreateImageRequest request)
@@ -135,13 +134,13 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
 
       if (task == null)
       {
-        return _responseCreater.CreateFailureResponse<List<Guid>>(HttpStatusCode.BadRequest, new() { "Task must exist." });
+        return _responseCreator.CreateFailureResponse<List<Guid>>(HttpStatusCode.BadRequest, new() { "Task must exist." });
       }
 
       if (!await _accessValidator.IsAdminAsync()
         && !await DoesProjectUserExistAsync(task.ProjectId, _httpContextAccessor.HttpContext.GetUserId()))
       {
-        return _responseCreater.CreateFailureResponse<List<Guid>>(HttpStatusCode.Forbidden);
+        return _responseCreator.CreateFailureResponse<List<Guid>>(HttpStatusCode.Forbidden);
       }
 
       ValidationResult validationResult = await _validator.ValidateAsync(request);
@@ -150,7 +149,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
 
       if (!validationResult.IsValid)
       {
-        return _responseCreater.CreateFailureResponse<List<Guid>>(HttpStatusCode.BadRequest, errors);
+        return _responseCreator.CreateFailureResponse<List<Guid>>(HttpStatusCode.BadRequest, errors);
       }
 
       List<Guid> imagesIds = await CreateImagesAsync(
@@ -158,7 +157,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
 
       if (errors.Any())
       {
-        return _responseCreater.CreateFailureResponse<List<Guid>>(HttpStatusCode.BadRequest, errors);
+        return _responseCreator.CreateFailureResponse<List<Guid>>(HttpStatusCode.BadRequest, errors);
       }
 
       _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Created;

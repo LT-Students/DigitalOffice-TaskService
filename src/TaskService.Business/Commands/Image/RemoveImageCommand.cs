@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Broker;
-using LT.DigitalOffice.Kernel.Constants;
+using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
@@ -34,7 +33,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
     private readonly ILogger<RemoveImageCommand> _logger;
     private readonly IAccessValidator _accessValidator;
     private readonly IRemoveImageRequestValidator _validator;
-    private readonly IResponseCreater _responseCreater;
+    private readonly IResponseCreator _responseCreator;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IRequestClient<ICheckProjectUsersExistenceRequest> _rcCheckProjectUsers;
 
@@ -106,7 +105,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
       ILogger<RemoveImageCommand> logger,
       IAccessValidator accessValidator,
       IRemoveImageRequestValidator validator,
-      IResponseCreater responseCreater)
+      IResponseCreator responseCreator)
     {
       _httpContextAccessor = httpContextAccessor;
       _imageRepository = imageRepository;
@@ -116,7 +115,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
       _logger = logger;
       _accessValidator = accessValidator;
       _validator = validator;
-      _responseCreater = responseCreater;
+      _responseCreator = responseCreator;
     }
 
     public async Task<OperationResultResponse<bool>> ExecuteAsync(RemoveImageRequest request)
@@ -125,23 +124,23 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
 
       if (task == null)
       {
-        return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, new() { "Task must exist." });
+        return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, new() { "Task must exist." });
       }
 
       if (!await _accessValidator.IsAdminAsync()
         && !await DoesProjectUserExistAsync(task.ProjectId, _httpContextAccessor.HttpContext.GetUserId()))
       {
-        return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
+        return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
       }
 
       if (!_validator.ValidateCustom(request, out var errors))
       {
-        return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
+        return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
       }
 
       if (!await RemoveImageAsync(request.ImagesIds, errors))
       {
-        return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
+        return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
       }
 
       return new()

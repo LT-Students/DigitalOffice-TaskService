@@ -4,8 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentValidation.Results;
-using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
@@ -33,7 +33,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
     private readonly IPatchDbTaskMapper _mapper;
     private readonly ILogger<EditTaskCommand> _logger;
     private readonly IRequestClient<ICheckProjectUsersExistenceRequest> _rcCheckProjectUsers;
-    private readonly IResponseCreater _responseCreater;
+    private readonly IResponseCreator _responseCreator;
 
     private async Task<bool> DoesProjectUserExistAsync(Guid projectId, Guid userId)
     {
@@ -83,7 +83,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       IPatchDbTaskMapper mapper,
       ILogger<EditTaskCommand> logger,
       IRequestClient<ICheckProjectUsersExistenceRequest> rcCheckProjectUsers,
-      IResponseCreater responseCreater)
+      IResponseCreator responseCreator)
     {
       _taskRepository = taskRepository;
       _validator = validator;
@@ -92,7 +92,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       _mapper = mapper;
       _logger = logger;
       _rcCheckProjectUsers = rcCheckProjectUsers;
-      _responseCreater = responseCreater;
+      _responseCreator = responseCreator;
     }
 
     public async Task<OperationResultResponse<bool>> ExecuteAsync(Guid taskId, JsonPatchDocument<EditTaskRequest> patch)
@@ -106,7 +106,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
       if (!await _accessValidator.IsAdminAsync()
         && !await DoesProjectUserExistAsync(task.ProjectId, requestUserId))
       {
-        return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
+        return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
       }
 
       ValidationResult validationResult = await _validator.ValidateAsync(patch);
@@ -115,7 +115,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
 
       if (!validationResult.IsValid || !await ValidateAsync(task, patch, errors))
       {
-        return _responseCreater.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
+        return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
       }
 
       await _taskRepository.EditAsync(task, _mapper.Map(patch));
