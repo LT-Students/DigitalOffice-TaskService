@@ -11,6 +11,7 @@ using LT.DigitalOffice.Kernel.Middlewares.ApiInformation;
 using LT.DigitalOffice.Kernel.RedisSupport.Helpers;
 using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.ProjectService.Models.Dto.Configurations;
+using LT.DigitalOffice.TaskService.Broker;
 using LT.DigitalOffice.TaskService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TaskService.Mappers.Helpers;
 using MassTransit;
@@ -106,6 +107,8 @@ namespace LT.DigitalOffice.TaskService
 
       services.AddMassTransit(busConfigurator =>
       {
+        busConfigurator.AddConsumer<DisactivateUserConsumer>();
+
         busConfigurator.UsingRabbitMq((context, cfg) =>
         {
           cfg.Host(_rabbitMqConfig.Host, "/", host =>

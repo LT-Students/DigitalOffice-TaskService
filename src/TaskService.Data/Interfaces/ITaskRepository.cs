@@ -24,5 +24,7 @@ namespace LT.DigitalOffice.ProjectService.Data.Interfaces
     Task<Guid> CreateAsync(DbTask dbTask);
 
     Task<bool> DoesExistAsync(Guid id);
+
+    Task<bool> UserDisactivateAsync(Guid userId, Guid modifiedBy);
   }
 }
