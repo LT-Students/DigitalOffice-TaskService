@@ -120,5 +120,23 @@ namespace LT.DigitalOffice.ProjectService.Data
 
       return (await tasks.Skip(filter.SkipCount).Take(filter.TakeCount).ToListAsync(), totalCount);
     }
+
+    public async Task UserDisactivateAsync(Guid userId, Guid modifiedBy)
+    {
+      IQueryable<DbTask> dbTasks = _provider.Tasks
+        .Where(u => u.AssignedTo == userId).AsQueryable();
+
+      if (dbTasks.Any())
+      {
+        foreach (DbTask task in dbTasks)
+        {
+          task.AssignedTo = null;
+          task.ModifiedBy = modifiedBy;
+          task.ModifiedAtUtc = DateTime.UtcNow;
+        }
+
+        await _provider.SaveAsync();
+      }
+    }
   }
 }

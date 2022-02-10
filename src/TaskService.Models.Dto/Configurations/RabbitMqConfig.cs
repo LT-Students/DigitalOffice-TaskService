@@ -4,12 +4,14 @@ using LT.DigitalOffice.Models.Broker.Common;
 using LT.DigitalOffice.Models.Broker.Requests.Image;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Requests.User;
-using IGetImagesRequest = LT.DigitalOffice.Models.Broker.Requests.Image.IGetImagesRequest;
 
 namespace LT.DigitalOffice.ProjectService.Models.Dto.Configurations
 {
   public class RabbitMqConfig : BaseRabbitMqConfig
   {
+    // Subscriptions
+    public string DisactivateUserTasksEndpoint { get; set; }
+
     // common
 
     [AutoInjectRequest(typeof(ICheckProjectsExistence))]

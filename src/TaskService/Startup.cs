@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using HealthChecks.UI.Client;
 using LT.DigitalOffice.Kernel.BrokerSupport.Configurations;
 using LT.DigitalOffice.Kernel.BrokerSupport.Extensions;
 using LT.DigitalOffice.Kernel.BrokerSupport.Middlewares.Token;
 using LT.DigitalOffice.Kernel.Configurations;
 using LT.DigitalOffice.Kernel.Extensions;
+using LT.DigitalOffice.Kernel.Helpers;
 using LT.DigitalOffice.Kernel.Middlewares.ApiInformation;
 using LT.DigitalOffice.Kernel.RedisSupport.Helpers;
 using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.ProjectService.Models.Dto.Configurations;
+using LT.DigitalOffice.TaskService.Broker;
 using LT.DigitalOffice.TaskService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TaskService.Mappers.Helpers;
 using MassTransit;
@@ -49,29 +50,6 @@ namespace LT.DigitalOffice.TaskService
       TaskNumberHelper.LoadCache(context);
     }
 
-    private string HidePassord(string line)
-    {
-      var password = "Password";
-
-      var index = line.IndexOf(password, 0, StringComparison.OrdinalIgnoreCase);
-
-      if (index != -1)
-      {
-        var words = Regex.Split(line, @"[=,; ]");
-
-        for (var i = 0; i < words.Length; i++)
-        {
-          if (string.Equals(password, words[i], StringComparison.OrdinalIgnoreCase))
-          {
-            line = line.Replace(words[i + 1], "****");
-            break;
-          }
-        }
-      }
-
-      return line;
-    }
-
     #region configure masstransit
 
     private (string username, string password) GetRabbitMqCredentials()
@@ -106,12 +84,19 @@ namespace LT.DigitalOffice.TaskService
 
       services.AddMassTransit(busConfigurator =>
       {
+        busConfigurator.AddConsumer<DisactivateUserTasksConsumer>();
+
         busConfigurator.UsingRabbitMq((context, cfg) =>
         {
           cfg.Host(_rabbitMqConfig.Host, "/", host =>
           {
             host.Username(username);
             host.Password(password);
+          });
+
+          cfg.ReceiveEndpoint(_rabbitMqConfig.DisactivateUserTasksEndpoint, ep =>
+          {
+            ep.ConfigureConsumer<DisactivateUserTasksConsumer>(context);
           });
         });
 
@@ -174,11 +159,11 @@ namespace LT.DigitalOffice.TaskService
       {
         connStr = Configuration.GetConnectionString("SQLConnectionString");
 
-        Log.Information($"SQL connection string from appsettings.json was used. Value '{HidePassord(connStr)}'.");
+        Log.Information($"SQL connection string from appsettings.json was used. Value '{PasswordHider.Hide(connStr)}'.");
       }
       else
       {
-        Log.Information($"SQL connection string from environment was used. Value '{HidePassord(connStr)}'.");
+        Log.Information($"SQL connection string from environment was used. Value '{PasswordHider.Hide(connStr)}'.");
       }
 
       services.AddDbContext<TaskServiceDbContext>(options =>
@@ -191,11 +176,11 @@ namespace LT.DigitalOffice.TaskService
       {
         redisConnStr = Configuration.GetConnectionString("Redis");
 
-        Log.Information($"Redis connection string from appsettings.json was used. Value '{HidePassord(redisConnStr)}'");
+        Log.Information($"Redis connection string from appsettings.json was used. Value '{PasswordHider.Hide(redisConnStr)}'");
       }
       else
       {
-        Log.Information($"Redis connection string from environment was used. Value '{HidePassord(redisConnStr)}'");
+        Log.Information($"Redis connection string from environment was used. Value '{PasswordHider.Hide(redisConnStr)}'");
       }
 
       services.AddSingleton<IConnectionMultiplexer>(
