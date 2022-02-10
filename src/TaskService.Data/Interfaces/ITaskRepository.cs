@@ -8,10 +8,6 @@ using Microsoft.AspNetCore.JsonPatch;
 
 namespace LT.DigitalOffice.ProjectService.Data.Interfaces
 {
-  /// <summary>
-  /// Represents interface of repository in repository pattern.
-  /// Provides methods for working with the database of TaskService.
-  /// </summary>
   [AutoInject]
   public interface ITaskRepository
   {
@@ -25,6 +21,6 @@ namespace LT.DigitalOffice.ProjectService.Data.Interfaces
 
     Task<bool> DoesExistAsync(Guid id);
 
-    Task<bool> UserDisactivateAsync(Guid userId, Guid modifiedBy);
+    Task UserDisactivateAsync(Guid userId, Guid modifiedBy);
   }
 }
