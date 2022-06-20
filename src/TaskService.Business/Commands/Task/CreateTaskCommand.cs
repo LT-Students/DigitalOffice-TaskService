@@ -12,6 +12,7 @@ using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models;
+using LT.DigitalOffice.Models.Broker.Models.Image;
 using LT.DigitalOffice.Models.Broker.Requests.Image;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Responses.Image;
@@ -77,8 +78,9 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Task
         var response =
           await _rcImages.GetResponse<IOperationResult<ICreateImagesResponse>>(
             ICreateImagesRequest.CreateObj(
-              projectImages.Select(x => new CreateImageData(x.Name, x.Content, x.Extension, userId)).ToList(),
-              ImageSource.Project));
+              projectImages.Select(x => new CreateImageData(x.Name, x.Content, x.Extension)).ToList(),
+              ImageSource.Project,
+              _httpContextAccessor.HttpContext.GetUserId()));
 
         if (response.Message.IsSuccess && response.Message.Body.ImagesIds != null)
         {

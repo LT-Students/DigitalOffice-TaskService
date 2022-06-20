@@ -1,5 +1,5 @@
 ﻿using LT.DigitalOffice.Kernel.Attributes;
-using LT.DigitalOffice.Models.Broker.Models;
+using LT.DigitalOffice.Models.Broker.Models.Project;
 using LT.DigitalOffice.TaskService.Models.Dto.Models;
 
 namespace LT.DigitalOffice.TaskService.Mappers.Models.Interfaces

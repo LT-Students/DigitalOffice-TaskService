@@ -11,7 +11,7 @@ using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Enums;
-using LT.DigitalOffice.Models.Broker.Requests.Image;
+using LT.DigitalOffice.Models.Broker.Publishing.Subscriber.Image;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.ProjectService.Data.Interfaces;
 using LT.DigitalOffice.TaskService.Business.Commands.Image.Interfaces;
@@ -29,7 +29,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
   {
     private readonly IImageRepository _imageRepository;
     private readonly ITaskRepository _taskRepository;
-    private readonly IRequestClient<IRemoveImagesRequest> _rcImages;
+    private readonly IRequestClient<IRemoveImagesPublish> _rcImages;
     private readonly ILogger<RemoveImageCommand> _logger;
     private readonly IAccessValidator _accessValidator;
     private readonly IRemoveImageRequestValidator _validator;
@@ -74,7 +74,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
       {
         Response<IOperationResult<bool>> response =
           await _rcImages.GetResponse<IOperationResult<bool>>(
-            IRemoveImagesRequest.CreateObj(ids, ImageSource.Project));
+            IRemoveImagesPublish.CreateObj(ids, ImageSource.Project));
 
         if (response.Message.IsSuccess)
         {
@@ -100,7 +100,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
       IHttpContextAccessor httpContextAccessor,
       IImageRepository imageRepository,
       ITaskRepository taskRepository,
-      IRequestClient<IRemoveImagesRequest> rcImages,
+      IRequestClient<IRemoveImagesPublish> rcImages,
       IRequestClient<ICheckProjectUsersExistenceRequest> rcCheckProjectUsers,
       ILogger<RemoveImageCommand> logger,
       IAccessValidator accessValidator,
