@@ -12,6 +12,7 @@ using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models;
+using LT.DigitalOffice.Models.Broker.Models.Image;
 using LT.DigitalOffice.Models.Broker.Requests.Image;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Responses.Image;
@@ -74,7 +75,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
       }
 
       List<CreateImageData> imagesDatas = images
-        .Select(x => new CreateImageData(x.Name, x.Content, x.Extension, userId))
+        .Select(x => new CreateImageData(x.Name, x.Content, x.Extension))
         .ToList();
 
       string logMessage = "Errors while creating images for task.";
@@ -83,7 +84,7 @@ namespace LT.DigitalOffice.TaskService.Business.Commands.Image
       {
         Response<IOperationResult<ICreateImagesResponse>> response =
           await _rcImages.GetResponse<IOperationResult<ICreateImagesResponse>>(
-            ICreateImagesRequest.CreateObj(imagesDatas, ImageSource.Project));
+            ICreateImagesRequest.CreateObj(imagesDatas, ImageSource.Project, _httpContextAccessor.HttpContext.GetUserId()));
 
         if (response.Message.IsSuccess)
         {

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using LT.DigitalOffice.Models.Broker.Models;
+using LT.DigitalOffice.Models.Broker.Models.Project;
 using LT.DigitalOffice.TaskService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TaskService.Mappers.Responses.Interfaces;
 using LT.DigitalOffice.TaskService.Models.Db;
